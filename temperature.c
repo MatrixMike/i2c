@@ -30,32 +30,31 @@
 #include "i2c.h"
 
 static const short
-	i2cAddress = 0x48,  /* 1001AAA as per Microchip specs */
-	taReg      = 0x00,  /* Ambient temperature register   */
-	configReg  = 0x01;  /* Configuration register         */
+ i2cAddress = 0x48,		/* 1001AAA as per Microchip specs */
+    taReg = 0x00,		/* Ambient temperature register   */
+    configReg = 0x01;		/* Configuration register         */
 
-int main(int argc,char *argv[])
+int main(int argc, char *argv[])
 {
 	int status;
 
-	if(I2C_ERR_NONE == (status = I2Copen()))
-	{
+	if (I2C_ERR_NONE == (status = I2Copen())) {
 		unsigned char msg[2];
 
 		/* Issue configuration command (2 bytes) */
 		msg[0] = configReg;
-		msg[1] = 0x60;      /* Enable 12-bit resolution */
-		if(I2C_ERR_NONE == (status = I2Cmsg(i2cAddress,msg,2,NULL,0)))
-		{
+		msg[1] = 0x60;	/* Enable 12-bit resolution */
+		if (I2C_ERR_NONE ==
+		    (status = I2Cmsg(i2cAddress, msg, 2, NULL, 0))) {
 			unsigned char reply[2];
 
 			/* Issue a series of temperature-reading commands
 			   (1 byte each w/2-byte replies) */
 			msg[0] = taReg;
-			while(I2C_ERR_NONE == (status =
-			  I2Cmsg(i2cAddress,msg,1,reply,2)))
-			{
-				float c,f;
+			while (I2C_ERR_NONE == (status =
+						I2Cmsg(i2cAddress, msg, 1,
+						       reply, 2))) {
+				float c, f;
 
 				/* Bits 6-0 of first byte returned are integer
 				   Centigrade temperature, bit 7 is sign
@@ -64,13 +63,14 @@ int main(int argc,char *argv[])
 				   byte are the fractional part of value. */
 				c = (float)(reply[0] & 0x7f) +
 				    (float)(reply[1] >> 4) / 16.0;
-				if(reply[0] & 0x80) c = -c;
+				if (reply[0] & 0x80)
+					c = -c;
 
 				/* Convert to Farenheit */
 				f = 32.0 + c * (9.0 / 5.0);
 
 				(void)printf("Temperature: %.2f°C %.2f°F\n",
-				  c,f);
+					     c, f);
 
 				/* Update once per second (roughly).
 				   12-bit conversion takes about 240msec.
@@ -87,8 +87,10 @@ int main(int argc,char *argv[])
 	   runs indefinitely until interrupted or I2Cmsg() fails), but it's
 	   left here in case you want to change the program to perform a
 	   single reading or some other variation. */
-	if(status) (void)printf("Exiting with error status %d\n",status);
-	else       (void)puts("Exiting cleanly");
+	if (status)
+		(void)printf("Exiting with error status %d\n", status);
+	else
+		(void)puts("Exiting cleanly");
 
 	return status;
 }

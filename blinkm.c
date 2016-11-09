@@ -43,30 +43,28 @@
 #include "i2c.h"
 
 static const short
-	i2cAddress = 0x09;  /* BlinkM default unless reprogrammed otherwise */
+ i2cAddress = 0x09;		/* BlinkM default unless reprogrammed otherwise */
 
-int main(int argc,char *argv[])
+int main(int argc, char *argv[])
 {
 	int status;
 
-	if(I2C_ERR_NONE == (status = I2Copen()))
-	{
-		int c,i;
-		unsigned char
-		  msgStop[]      = { 'o' },    /* Stop program on BlinkM */
-		  msgColor[3][4] =
-		  { { 'n',0xff,0x00,0x00 },    /* Immediate red   */
-		    { 'n',0x00,0xff,0x00 },    /* Immediate green */
-		    { 'n',0x00,0x00,0xff } } ; /* Immediate blue  */
-
-		status = I2Cmsg(i2cAddress,msgStop,sizeof(msgStop),NULL,0);
-
-		for(i=0;(I2C_ERR_NONE == status) && (i<5);i++)
+	if (I2C_ERR_NONE == (status = I2Copen())) {
+		int c, i;
+		unsigned char msgStop[] = { 'o' },	/* Stop program on BlinkM */
+		    msgColor[3][4] = { {
+		'n', 0xff, 0x00, 0x00},	/* Immediate red   */
 		{
-			for(c=0;(I2C_ERR_NONE == status) && (c<3);c++)
-			{
-				status = I2Cmsg(i2cAddress,msgColor[c],
-				  sizeof(msgColor[c]),NULL,0);
+		'n', 0x00, 0xff, 0x00},	/* Immediate green */
+		{
+		'n', 0x00, 0x00, 0xff}};	/* Immediate blue  */
+
+		status = I2Cmsg(i2cAddress, msgStop, sizeof(msgStop), NULL, 0);
+
+		for (i = 0; (I2C_ERR_NONE == status) && (i < 5); i++) {
+			for (c = 0; (I2C_ERR_NONE == status) && (c < 3); c++) {
+				status = I2Cmsg(i2cAddress, msgColor[c],
+						sizeof(msgColor[c]), NULL, 0);
 				sleep(1);
 			}
 		}
@@ -74,8 +72,10 @@ int main(int argc,char *argv[])
 		I2Cclose();
 	}
 
-	if(status) (void)printf("Exiting with error status %d mike \n",status);
-	else       (void)puts("Exiting cleanly");
+	if (status)
+		(void)printf("Exiting with error status %d mike \n", status);
+	else
+		(void)puts("Exiting cleanly");
 
 	return status;
 }

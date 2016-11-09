@@ -40,11 +40,11 @@
 #include "i2c.h"
 
 static const int
-	romSize    = 32 * 1024;  /* Total chip capacity in bytes   */
+ romSize = 32 * 1024;		/* Total chip capacity in bytes   */
 static const short
-	i2cAddress = 0x50,       /* 1010AAA as per Microchip specs */
-	pageSize   = 64,         /* Bytes per page                 */
-	testBytes  = 512;        /* Size of byte-at-a-time test    */
+ i2cAddress = 0x50,		/* 1010AAA as per Microchip specs */
+    pageSize = 64,		/* Bytes per page                 */
+    testBytes = 512;		/* Size of byte-at-a-time test    */
 
 /****************************************************************************
  Function    : byteTest()
@@ -62,40 +62,43 @@ static const short
                This method of writing is slow as heck for large volumes of
                data, hence the 512-byte test size.
  ****************************************************************************/
-static int byteTest(
-  const int           adr[],
-  const unsigned char val[],
-  const char          desc[])
+static int byteTest(const int adr[],
+		    const unsigned char val[], const char desc[])
 {
-	int           i = 0;
+	int i = 0;
 	unsigned char msg[3];
 
-	(void)printf("Writing %d %s, byte-at-a-time",testBytes,desc);
+	(void)printf("Writing %d %s, byte-at-a-time", testBytes, desc);
 	do {
-		if(!(i & 31)) { (void)putchar('.'); fflush(stdout); }
+		if (!(i & 31)) {
+			(void)putchar('.');
+			fflush(stdout);
+		}
 		msg[0] = adr[i] >> 8;
 		msg[1] = adr[i] & 0xff;
 		msg[2] = val[i];
-	} while((!I2Cmsg(i2cAddress,msg,3,NULL,0)) && (++i < testBytes));
+	} while ((!I2Cmsg(i2cAddress, msg, 3, NULL, 0)) && (++i < testBytes));
 	(void)puts((i < testBytes) ? "failed" : "OK");
 
-	if(i >= testBytes)
-	{
+	if (i >= testBytes) {
 		unsigned char reply;
 
 		(void)printf("Verifying");
 		i = 0;
 		do {
-			if(!(i & 31)) { (void)putchar('.'); fflush(stdout); }
+			if (!(i & 31)) {
+				(void)putchar('.');
+				fflush(stdout);
+			}
 			msg[0] = adr[i] >> 8;
 			msg[1] = adr[i] & 0xff;
 			/* Initialize reply variable with an intentionally
 			   wrong value to ensure that value returned by I2C
 			   call is genuine (and not residue of a prior
 			   invocation).  Helps avoid false positives. */
-			reply  = val[i] ^ 0xff;
-		} while((!I2Cmsg(i2cAddress,msg,2,&reply,1)) &&
-		        (val[i] == reply) && (++i < testBytes));
+			reply = val[i] ^ 0xff;
+		} while ((!I2Cmsg(i2cAddress, msg, 2, &reply, 1)) &&
+			 (val[i] == reply) && (++i < testBytes));
 		(void)puts((i < testBytes) ? "failed" : "OK");
 	}
 
@@ -111,38 +114,41 @@ static int byteTest(
  Returns     : int              0 on success, else various OS-specific error
                                 codes.
  ****************************************************************************/
-static int pageTest(
-  const unsigned char map[],
-  const char          desc[])
+static int pageTest(const unsigned char map[], const char desc[])
 {
-	int           i = 0;
+	int i = 0;
 	unsigned char msg[pageSize + 2];
 
-	(void)printf("Writing %d %s, page-at-a-time",romSize,desc);
+	(void)printf("Writing %d %s, page-at-a-time", romSize, desc);
 	do {
-		if(!(i & 2047)) { (void)putchar('.'); fflush(stdout); }
+		if (!(i & 2047)) {
+			(void)putchar('.');
+			fflush(stdout);
+		}
 		msg[0] = i >> 8;
 		msg[1] = i & 0xff;
-		(void)memcpy(&msg[2],&map[i],pageSize);
-	} while((!I2Cmsg(i2cAddress,msg,sizeof(msg),NULL,0)) &&
-	        ((i += pageSize) < romSize));
+		(void)memcpy(&msg[2], &map[i], pageSize);
+	} while ((!I2Cmsg(i2cAddress, msg, sizeof(msg), NULL, 0)) &&
+		 ((i += pageSize) < romSize));
 	(void)puts((i < romSize) ? "failed" : "OK");
 
-	if(i >= romSize)
-	{
+	if (i >= romSize) {
 		unsigned char reply[pageSize];
 
 		(void)printf("Verifying");
 		i = 0;
 		do {
-			if(!(i & 2047)) { (void)putchar('.'); fflush(stdout); }
+			if (!(i & 2047)) {
+				(void)putchar('.');
+				fflush(stdout);
+			}
 			msg[0] = i >> 8;
 			msg[1] = i & 0xff;
 			/* As with byte case, avoid false positives */
-			memset(reply,0xff,pageSize);
-		} while((!I2Cmsg(i2cAddress,msg,2,reply,sizeof(reply))) &&
-		        (!memcmp(reply,&map[i],pageSize)) &&
-		        ((i += pageSize) < romSize));
+			memset(reply, 0xff, pageSize);
+		} while ((!I2Cmsg(i2cAddress, msg, 2, reply, sizeof(reply))) &&
+			 (!memcmp(reply, &map[i], pageSize)) &&
+			 ((i += pageSize) < romSize));
 		(void)puts((i < romSize) ? "failed" : "OK");
 	}
 
@@ -156,56 +162,58 @@ static int pageTest(
  Parameters  : argc/argv currently ignored.
  Returns     : 0 on success, else various OS-specific error codes.
  ****************************************************************************/
-int main(int argc,char *argv[])
+int main(int argc, char *argv[])
 {
 	int status;
 
-	if(I2C_ERR_NONE == (status = I2Copen()))
-	{
-		int           adr[testBytes],i;
+	if (I2C_ERR_NONE == (status = I2Copen())) {
+		int adr[testBytes], i;
 		unsigned char val[testBytes];
 
 		srand(time(NULL));
 
 		/* Set up linear range of addresses, clear each */
-		for(i=0;i<testBytes;i++) adr[i] = i;
-		bzero(val,sizeof(val));
-		if(!(status = byteTest(adr,val,"sequential zeros")))
-		{
-		  /* Sequential zero test completed successfully.
-		     Set up random range of addresses and random values */
-		  int a,j;
-		  for(i=0;i<testBytes;i++)
-		  {
-		    /* Ensure each address is unique, else verify may fail */
-		    do {
-		      a = rand() % romSize;
-		      for(j=0;(j<i) && (a != adr[j]);j++);
-		    } while(j < i);
-		    adr[i] = a;
-		    val[i] = rand() & 0xff;
-		  }
-		  if(!(status = byteTest(adr,val,"random addresses/values")))
-		  {
-		    /* Random address/data test was successful.
-		       Clear entire memory map and write to device */
-		    unsigned char map[romSize];
-		    bzero(map,sizeof(map));
-		    if(!(status = pageTest(map,"zeros")))
-		    {
-		      /* Full device clear was successful.
-		         Fill with and verify random data. */
-		      for(i=0;i<romSize;i++) map[i] = rand() & 0xff;
-		      status = pageTest(map,"random values");
-		    }
-		  }
+		for (i = 0; i < testBytes; i++)
+			adr[i] = i;
+		bzero(val, sizeof(val));
+		if (!(status = byteTest(adr, val, "sequential zeros"))) {
+			/* Sequential zero test completed successfully.
+			   Set up random range of addresses and random values */
+			int a, j;
+			for (i = 0; i < testBytes; i++) {
+				/* Ensure each address is unique, else verify may fail */
+				do {
+					a = rand() % romSize;
+					for (j = 0; (j < i) && (a != adr[j]);
+					     j++) ;
+				} while (j < i);
+				adr[i] = a;
+				val[i] = rand() & 0xff;
+			}
+			if (!
+			    (status =
+			     byteTest(adr, val, "random addresses/values"))) {
+				/* Random address/data test was successful.
+				   Clear entire memory map and write to device */
+				unsigned char map[romSize];
+				bzero(map, sizeof(map));
+				if (!(status = pageTest(map, "zeros"))) {
+					/* Full device clear was successful.
+					   Fill with and verify random data. */
+					for (i = 0; i < romSize; i++)
+						map[i] = rand() & 0xff;
+					status = pageTest(map, "random values");
+				}
+			}
 		}
 
 		I2Cclose();
 	}
 
-	if(status) (void)printf("Mike Exiting with error status %d\n",status);
-	else       (void)puts("Exiting cleanly");
+	if (status)
+		(void)printf("Mike Exiting with error status %d\n", status);
+	else
+		(void)puts("Exiting cleanly");
 
 	return status;
 }

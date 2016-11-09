@@ -35,9 +35,9 @@
 /* See notes in platform-specific libraries regarding I2C-SC8 addressing.
    '0xb0' is technically not a valid 7-bit I2C address. */
 static const short
-	i2cAddress = 0xb0,  /* Default I2C address of I2C-SC8    */
-	baseReg    = 0x02,  /* Servo #1 base register (low byte) */
-	battReg    = 0x19;  /* Battery voltage register          */
+ i2cAddress = 0xb0,		/* Default I2C address of I2C-SC8    */
+    baseReg = 0x02,		/* Servo #1 base register (low byte) */
+    battReg = 0x19;		/* Battery voltage register          */
 
 /****************************************************************************
  Function    : moveServo()
@@ -51,17 +51,15 @@ static const short
  Returns     : int    0 on success, else various OS-specific error codes.
  Notes       : No range-checking of the input parameters is performed.
  ****************************************************************************/
-static int moveServo(
-  const short servoNum,
-  const short position)
+static int moveServo(const short servoNum, const short position)
 {
 	unsigned char msg[3];
 
-	msg[0] = baseReg + servoNum * 3;  /* Servo register on I2C-SC8 */
-	msg[1] = position  & 0xff;        /* Low byte  (microseconds)  */
-	msg[2] = position >> 8;           /* High byte (microseconds)  */
+	msg[0] = baseReg + servoNum * 3;	/* Servo register on I2C-SC8 */
+	msg[1] = position & 0xff;	/* Low byte  (microseconds)  */
+	msg[2] = position >> 8;	/* High byte (microseconds)  */
 
-	return I2Cmsg(i2cAddress,msg,sizeof(msg),NULL,0);  /* No reply */
+	return I2Cmsg(i2cAddress, msg, sizeof(msg), NULL, 0);	/* No reply */
 }
 
 /****************************************************************************
@@ -78,18 +76,19 @@ static int moveServo(
  ****************************************************************************/
 static int reportVoltage(void)
 {
-	int           status;
-	unsigned char msg[1],   /* Command to I2C-SC8 goes here       */
-	              reply[1]; /* Reply from I2C-SC8 ends up here    */
+	int status;
+	unsigned char msg[1],	/* Command to I2C-SC8 goes here       */
+	 reply[1];		/* Reply from I2C-SC8 ends up here    */
 
-	msg[0] = battReg;       /* Battery voltage address on I2C-SC8 */
+	msg[0] = battReg;	/* Battery voltage address on I2C-SC8 */
 
-	if(!(status = I2Cmsg(i2cAddress,msg,sizeof(msg),reply,sizeof(reply))))
-	{
+	if (!
+	    (status =
+	     I2Cmsg(i2cAddress, msg, sizeof(msg), reply, sizeof(reply)))) {
 		/* 0.039 here is inferred from Mindsensors docmentation;
 		   I2C-SC8 reports voltage in 39 millivolt increments. */
 		(void)printf("Servo battery voltage: %0.2fV\n",
-		  ((float)reply[0] * 0.039));
+			     ((float)reply[0] * 0.039));
 	}
 
 	return status;
@@ -104,35 +103,36 @@ static int reportVoltage(void)
  Parameters  : argc/argv currently ignored.
  Returns     : 0 on success, else various OS-specific error codes.
  ****************************************************************************/
-int main(int argc,char *argv[])
+int main(int argc, char *argv[])
 {
 	int status;
 
-	if(I2C_ERR_NONE == (status = I2Copen()))
-	{
-		short i,p,pos[4] = { 1000,1500,2000,1500 };
+	if (I2C_ERR_NONE == (status = I2Copen())) {
+		short i, p, pos[4] = { 1000, 1500, 2000, 1500 };
 
 		status = reportVoltage();
 
-		for(i=0;(i<3)&&!status;i++)  /* Repeat sequence 3 times */
-		{
+		for (i = 0; (i < 3) && !status; i++) {	/* Repeat sequence 3 times */
 			/* Step through positions, pausing 1 sec between */
-			for(p=0;(p<(sizeof(pos)/sizeof(pos[0])))&&!status;p++)
-			{
+			for (p = 0;
+			     (p < (sizeof(pos) / sizeof(pos[0]))) && !status;
+			     p++) {
 				(void)printf("Iteration %d, position %d\n",
-				  i + 1,p + 1);
-				status = moveServo(0,pos[p]);
+					     i + 1, p + 1);
+				status = moveServo(0, pos[p]);
 				sleep(1);
 			}
 		}
 
-		status = moveServo(0,0);  /* Disable servo 0 output */
+		status = moveServo(0, 0);	/* Disable servo 0 output */
 
 		I2Cclose();
 	}
 
-	if(status) (void)printf("Exiting with error status %d\n",status);
-	else       (void)puts("Exiting cleanly");
+	if (status)
+		(void)printf("Exiting with error status %d\n", status);
+	else
+		(void)puts("Exiting cleanly");
 
 	return status;
 }

@@ -36,7 +36,7 @@
 /* At the moment this is rigged for a single I2C bus.  If support for multiple
    buses is desired in the future, some manner of non-OS-specific per-bus
    reference handle should be passed back to the calling code. */
-static int fd = -1;  /* File descriptor of open device */
+static int fd = -1;		/* File descriptor of open device */
 
 /* Similarly kludgey - change this to the device file corresponding to the
    I2C bus of interest.  This was not made a parameter to I2Copen() as I
@@ -52,7 +52,8 @@ const static char device[] = "/dev/i2c-2";
  ****************************************************************************/
 int I2Copen()
 {
-	if((fd = open(device,O_RDWR)) >= 0) return I2C_ERR_NONE;
+	if ((fd = open(device, O_RDWR)) >= 0)
+		return I2C_ERR_NONE;
 
 	(void)puts("Could not open port (are you running as root?)");
 	return I2C_ERR_OPEN;
@@ -70,16 +71,14 @@ int I2Copen()
                int              Size of response data, in bytes (0 if none).
  Returns     : 0 on success, else various OS-specific error codes.
  ****************************************************************************/
-int I2Cmsg(
-  short           const address,
-  unsigned char * const sendBuf,
-  int             const sendBytes,
-  unsigned char * const replyBuf,
-  int             const replyBytes)
+int I2Cmsg(short const address,
+	   unsigned char *const sendBuf,
+	   int const sendBytes,
+	   unsigned char *const replyBuf, int const replyBytes)
 {
 	struct i2c_rdwr_ioctl_data rdwr;
-	struct i2c_msg             msg;
-	int                        i;
+	struct i2c_msg msg;
+	int i;
 
 	/* I2C addresses are supposed to be 7 bits (and in fact the ioctl()
 	   calls will fail if an address exceeding this range is passed).
@@ -89,26 +88,26 @@ int I2Cmsg(
 	   follows the 7-bit address as part of the address itself.  If
 	   the address passed exceeds the 7-bit limit, shift right by one
 	   to strip the R/W bit and put the address within the valid range. */
-	msg.addr   = (address & 0x80) ? (address >> 1) : address;
-	rdwr.msgs  = &msg;
+	msg.addr = (address & 0x80) ? (address >> 1) : address;
+	rdwr.msgs = &msg;
 	rdwr.nmsgs = 1;
 
-	if(sendBuf && (sendBytes > 0))
-	{
+	if (sendBuf && (sendBytes > 0)) {
 		msg.flags = 0;
-		msg.buf   = sendBuf;
-		msg.len   = sendBytes;
+		msg.buf = sendBuf;
+		msg.len = sendBytes;
 
-		if((i = ioctl(fd,I2C_RDWR,&rdwr)) < 0) return i;
+		if ((i = ioctl(fd, I2C_RDWR, &rdwr)) < 0)
+			return i;
 	}
 
-	if(replyBuf && (replyBytes > 0))
-	{
+	if (replyBuf && (replyBytes > 0)) {
 		msg.flags = I2C_M_RD;
-		msg.buf   = replyBuf;
-		msg.len   = replyBytes;
+		msg.buf = replyBuf;
+		msg.len = replyBytes;
 
-		if((i = ioctl(fd,I2C_RDWR,&rdwr)) < 0) return i;
+		if ((i = ioctl(fd, I2C_RDWR, &rdwr)) < 0)
+			return i;
 	}
 
 	return I2C_ERR_NONE;
@@ -122,8 +121,7 @@ int I2Cmsg(
  ****************************************************************************/
 void I2Cclose()
 {
-	if(fd >= 0)
-	{
+	if (fd >= 0) {
 		(void)close(fd);
 		fd = -1;
 	}

@@ -48,19 +48,17 @@ int I2Copen()
 	CFMutableDictionaryRef dict;
 
 	/* Locate all available I2C buses */
-	if((dict = IOServiceMatching(kIOI2CInterfaceClassName)))
-	{
+	if ((dict = IOServiceMatching(kIOI2CInterfaceClassName))) {
 		io_iterator_t iterator = 0;
 
 		/* Iterate through all items in dictionary.  dict is released
 		   within IOServiceGetMatchingServices() so there's no need
 		   for this code to do that. */
 		(void)IOServiceGetMatchingServices(kIOMasterPortDefault,
-		  dict,&iterator);
+						   dict, &iterator);
 
-		if(iterator)
-		{
-			io_service_t last,interface = 0;
+		if (iterator) {
+			io_service_t last, interface = 0;
 
 			/* We're interested only in the last interface in the
 			   list; this will be the Mini-DVI port on systems
@@ -72,13 +70,14 @@ int I2Copen()
 			   preferred bus (or to access multiple I2C buses). */
 			do {
 				last = interface;
-			} while((interface = IOIteratorNext(iterator)));
+			} while ((interface = IOIteratorNext(iterator)));
 
 			(void)IOObjectRelease(iterator);
 
-			if(last && (kIOReturnSuccess ==
-			  IOI2CInterfaceOpen(last,kNilOptions,&connect)))
-				return I2C_ERR_NONE;  /* Yay! */
+			if (last && (kIOReturnSuccess ==
+				     IOI2CInterfaceOpen(last, kNilOptions,
+							&connect)))
+				return I2C_ERR_NONE;	/* Yay! */
 		}
 	}
 
@@ -97,22 +96,20 @@ int I2Copen()
                int              Size of response data, in bytes (0 if none).
  Returns     : 0 on success, else various OS-specific error codes.
  ****************************************************************************/
-int I2Cmsg(
-  short           const address,
-  unsigned char * const sendBuf,
-  int             const sendBytes,
-  unsigned char * const replyBuf,
-  int             const replyBytes)
+int I2Cmsg(short const address,
+	   unsigned char *const sendBuf,
+	   int const sendBytes,
+	   unsigned char *const replyBuf, int const replyBytes)
 {
 	IOI2CRequest request;
-	IOReturn     status;
+	IOReturn status;
 
-	bzero(&request,sizeof(request));
+	bzero(&request, sizeof(request));
 	/* Of possible note here: optional callback function allows
 	   the I2C request to operate asynchronously (non-blocking).
 	   Keep in mind that request structure (and associated buffers)
 	   would need to be persistent in that case. */
-	request.completion  = NULL;
+	request.completion = NULL;
 	/* Addressing seems to work a little wonky in OSX; I2C addresses are
 	   supposed to be 7 bits, but it appears that the IOI2C* functions
 	   include the subsequent read/write bit within the address fields,
@@ -123,26 +120,24 @@ int I2Cmsg(
 	   controller is treating the address and subsequent bit similarly.
 	   So the left-shift isn't performed if the high bit is set. */
 	request.sendAddress = request.replyAddress =
-	  (address & 0x80) ? address : (address << 1);
+	    (address & 0x80) ? address : (address << 1);
 
-	if(sendBuf && (sendBytes > 0))
-	{
-		request.sendTransactionType  = kIOI2CSimpleTransactionType;
-		request.sendBuffer           = (vm_address_t)sendBuf;
-		request.sendBytes            = sendBytes;
+	if (sendBuf && (sendBytes > 0)) {
+		request.sendTransactionType = kIOI2CSimpleTransactionType;
+		request.sendBuffer = (vm_address_t) sendBuf;
+		request.sendBytes = sendBytes;
 	}
 
-	if(replyBuf && (replyBytes > 0))
-	{
+	if (replyBuf && (replyBytes > 0)) {
 		request.replyTransactionType = kIOI2CSimpleTransactionType;
-		request.replyBuffer          = (vm_address_t)replyBuf;
-		request.replyBytes           = replyBytes;
+		request.replyBuffer = (vm_address_t) replyBuf;
+		request.replyBytes = replyBytes;
 	}
 
-	status = IOI2CSendRequest(connect,kNilOptions,&request);
+	status = IOI2CSendRequest(connect, kNilOptions, &request);
 
 	return ((kIOReturnSuccess == status) && request.result) ?
-	  request.result : (int)status;
+	    request.result : (int)status;
 }
 
 /****************************************************************************
@@ -153,9 +148,8 @@ int I2Cmsg(
  ****************************************************************************/
 void I2Cclose()
 {
-	if(connect)
-	{
-		(void)IOI2CInterfaceClose(connect,kNilOptions);
+	if (connect) {
+		(void)IOI2CInterfaceClose(connect, kNilOptions);
 		connect = NULL;
 	}
 }
