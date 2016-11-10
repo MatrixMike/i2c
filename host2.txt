@@ -1,0 +1,22 @@
+Linux mikeh-1215B-1215B 3.19.0-32-generic #37~14.04.1-Ubuntu SMP Thu Oct 22 09:41:40 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
+Distributor ID:	LinuxMint
+Description:	Linux Mint 17.3 Rosa
+Release:	17.3
+Codename:	rosa
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- -- --                         
+i2c-0	i2c       	Radeon i2c bit bus 0x90         	I2C adapter
+i2c-1	i2c       	Radeon i2c bit bus 0x91         	I2C adapter
+i2c-2	i2c       	Radeon i2c bit bus 0x92         	I2C adapter
+i2c-3	i2c       	Radeon i2c bit bus 0x93         	I2C adapter
+i2c-4	i2c       	Radeon i2c bit bus 0x94         	I2C adapter
+i2c-5	i2c       	Radeon i2c bit bus 0x95         	I2C adapter
+i2c-6	i2c       	Radeon i2c bit bus 0x96         	I2C adapter
+i2c-7	i2c       	Radeon i2c bit bus 0x97         	I2C adapter
